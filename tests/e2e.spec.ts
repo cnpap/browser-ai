@@ -1,6 +1,8 @@
 import type { ElectronApplication, JSHandle } from "playwright";
 import { _electron as electron } from "playwright";
-import { expect, test as base } from "@playwright/test";
+import { expect, test as base, Page } from "@playwright/test";
+import type { Page as PlaywrightPage } from "playwright";
+
 import type { BrowserWindow } from "electron";
 import { globSync } from "glob";
 import { platform } from "node:process";
@@ -8,11 +10,25 @@ import { createHash } from "node:crypto";
 
 process.env.PLAYWRIGHT_TEST = "true";
 
+// Strongly-typed preload exposure keys (base64 of literal names)
+const KEY_VERSIONS = "dmVyc2lvbnM=" as const; // btoa("versions")
+const KEY_SHA256SUM = "c2hhMjU2c3Vt" as const; // btoa("sha256sum")
+const KEY_SEND = "c2VuZA==" as const; // btoa("send")
+
+type PreloadGlobals = {
+  [KEY_VERSIONS]: NodeJS.ProcessVersions;
+  [KEY_SHA256SUM]: (str: string) => string;
+  [KEY_SEND]: (channel: string, ...args: unknown[]) => Promise<unknown>;
+};
+
 // Declare the types of your fixtures.
 type TestFixtures = {
+  page: PlaywrightPage;
   electronApp: ElectronApplication;
   electronVersions: NodeJS.ProcessVersions;
 };
+
+declare const g: <T extends keyof PreloadGlobals>(key: T) => PreloadGlobals[T];
 
 const test = base.extend<TestFixtures>({
   electronApp: [
@@ -61,7 +77,13 @@ const test = base.extend<TestFixtures>({
     });
 
     await page.waitForLoadState("load");
-    await use(page);
+    // Inject a global accessor into the page context without using `any`
+    await page.evaluate(() => {
+      const get = <T extends keyof PreloadGlobals>(key: T): PreloadGlobals[T] =>
+        (globalThis as unknown as PreloadGlobals)[key] as PreloadGlobals[T];
+      (window as unknown as { g: typeof get }).g = get;
+    });
+    await use(page as Page);
   },
 
   electronVersions: async ({ electronApp }, use) => {
@@ -69,7 +91,7 @@ const test = base.extend<TestFixtures>({
   },
 });
 
-test("Main window state", async ({ electronApp, page }) => {
+test("Main window state", async ({ electronApp, page }: TestFixtures) => {
   const window: JSHandle<BrowserWindow> = await electronApp.browserWindow(page);
   const windowState = await window.evaluate(
     (
@@ -121,23 +143,19 @@ test.describe("Main window web content", async () => {
 test.describe("Preload context should be exposed", async () => {
   test.describe(`versions should be exposed`, async () => {
     test("with same type`", async ({ page }) => {
-      const type = await page.evaluate(
-        () => typeof globalThis[btoa("versions")]
-      );
+      const type = await page.evaluate((k) => typeof g(k), KEY_VERSIONS);
       expect(type).toEqual("object");
     });
 
     test("with same value", async ({ page, electronVersions }) => {
-      const value = await page.evaluate(() => globalThis[btoa("versions")]);
+      const value = await page.evaluate((k) => g(k), KEY_VERSIONS);
       expect(value).toEqual(electronVersions);
     });
   });
 
   test.describe(`sha256sum should be exposed`, async () => {
     test("with same type`", async ({ page }) => {
-      const type = await page.evaluate(
-        () => typeof globalThis[btoa("sha256sum")]
-      );
+      const type = await page.evaluate((k) => typeof g(k), KEY_SHA256SUM);
       expect(type).toEqual("function");
     });
 
@@ -146,30 +164,30 @@ test.describe("Preload context should be exposed", async () => {
       const expectedValue = createHash("sha256")
         .update(testString)
         .digest("hex");
-      const value = await page.evaluate(
-        (str) => globalThis[btoa("sha256sum")](str),
-        testString
-      );
+      const value = await page.evaluate(({ k, str }) => g(k)(str), {
+        k: KEY_SHA256SUM,
+        str: testString,
+      });
       expect(value).toEqual(expectedValue);
     });
   });
 
   test.describe(`send should be exposed`, async () => {
     test("with same type`", async ({ page }) => {
-      const type = await page.evaluate(() => typeof globalThis[btoa("send")]);
+      const type = await page.evaluate((k) => typeof g(k), KEY_SEND);
       expect(type).toEqual("function");
     });
 
     test("with same behavior", async ({ page, electronApp }) => {
       await electronApp.evaluate(async ({ ipcMain }) => {
-        ipcMain.handle("test", (event, message) => btoa(message));
+        ipcMain.handle("test", (_event, message) => btoa(message));
       });
 
       const testString = btoa(`${Date.now() * Math.random()}`);
       const expectedValue = btoa(testString);
       const value = await page.evaluate(
-        async (str) => await globalThis[btoa("send")]("test", str),
-        testString
+        async ({ k, str }) => await g(k)("test", str),
+        { k: KEY_SEND, str: testString }
       );
       expect(value).toEqual(expectedValue);
     });
