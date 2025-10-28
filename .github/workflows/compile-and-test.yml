@@ -45,10 +45,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - windows-latest
-          - ubuntu-latest
-          - macos-latest
+        include:
+          - os: windows-latest
+            build_args: ""
+          - os: ubuntu-latest
+            build_args: ""
+          # macOS Intel (x64)
+          - os: macos-13
+            build_args: "--mac --x64"
+          # macOS Apple Silicon (arm64)
+          - os: macos-14
+            build_args: "--mac --arm64"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -58,7 +65,7 @@ jobs:
           renderer-template: ${{inputs.renderer-template}}
 
       - run: npm version "${{inputs.app-version}}" --no-git-tag-version
-      - run: npm run compile -- -p never
+      - run: npm run compile -- -p never ${{ matrix.build_args }}
         env:
           VITE_DISTRIBUTION_CHANNEL: ${{inputs.distribution-channel}}
 
