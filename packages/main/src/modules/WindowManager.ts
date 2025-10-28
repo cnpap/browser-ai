@@ -22,8 +22,11 @@ class WindowManager implements AppModule {
   }
 
   async createWindow(): Promise<BrowserWindow> {
+    const isMac = process.platform === 'darwin';
     const browserWindow = new BrowserWindow({
       show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
+      frame: isMac ? true : false,
+      titleBarStyle: isMac ? 'hiddenInset' : undefined,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -38,6 +41,14 @@ class WindowManager implements AppModule {
     } else {
       await browserWindow.loadFile(this.#renderer.path);
     }
+
+    // Notify renderer about fullscreen changes (macOS hides traffic lights in fullscreen)
+    browserWindow.on('enter-full-screen', () => {
+      browserWindow.webContents.send('window:fullscreen-changed', true);
+    });
+    browserWindow.on('leave-full-screen', () => {
+      browserWindow.webContents.send('window:fullscreen-changed', false);
+    });
 
     return browserWindow;
   }

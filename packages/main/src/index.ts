@@ -7,6 +7,7 @@ import {hardwareAccelerationMode} from './modules/HardwareAccelerationModule.js'
 import {autoUpdater} from './modules/AutoUpdater.js';
 import {allowInternalOrigins} from './modules/BlockNotAllowdOrigins.js';
 import {allowExternalUrls} from './modules/ExternalUrls.js';
+import {windowControlsIpc} from './modules/WindowControlsIpc.js';
 
 
 export async function initApp(initConfig: AppInitConfig) {
@@ -15,6 +16,7 @@ export async function initApp(initConfig: AppInitConfig) {
     .init(disallowMultipleAppInstance())
     .init(terminateAppOnLastWindowClose())
     .init(hardwareAccelerationMode({enable: false}))
+    .init(windowControlsIpc())
     .init(autoUpdater())
 
     // Install DevTools extension if needed
