@@ -1,0 +1,38 @@
+name: App CI Entry
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - .editorconfig
+      - '.idea/**'
+      - '.vscode/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - .editorconfig
+      - '.idea/**'
+      - '.vscode/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  run-ci:
+    name: ci.yml
+    uses: ./.github/workflows/ci.yml
+    with:
+      renderer-template: ''
+      distribution-channel: stable
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
