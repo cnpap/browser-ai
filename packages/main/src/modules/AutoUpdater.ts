@@ -34,6 +34,13 @@ export class AutoUpdater implements AppModule {
   }
 
   async runAutoUpdater() {
+    // Skip auto-update during CI or Playwright tests to avoid network/file provider issues
+    const isCI = !!process.env.CI;
+    const isPlaywright = process.env.PLAYWRIGHT_TEST === 'true' || process.env.PLAYWRIGHT_TEST === '1';
+    if (isCI || isPlaywright) {
+      return null;
+    }
+
     const updater = this.getAutoUpdater();
     try {
       updater.logger = this.#logger || null;
@@ -46,7 +53,11 @@ export class AutoUpdater implements AppModule {
       return await updater.checkForUpdatesAndNotify(this.#notification);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('No published versions')) {
+        // Gracefully ignore common non-fatal cases when updates are not available/provided
+        if (
+          error.message.includes('No published versions') ||
+          error.message.includes('No files provided')
+        ) {
           return null;
         }
       }
