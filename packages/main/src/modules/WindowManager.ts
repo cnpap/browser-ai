@@ -2,6 +2,7 @@ import { BrowserWindow } from "electron";
 import type { AppInitConfig } from "../AppInitConfig.js";
 import type { AppModule } from "../AppModule.js";
 import type { ModuleContext } from "../ModuleContext.js";
+import { getBackendBaseUrl } from "./BackendServer.js";
 
 class WindowManager implements AppModule {
   readonly #preload: { path: string };
@@ -39,10 +40,22 @@ class WindowManager implements AppModule {
       },
     });
 
+    const backendUrl = getBackendBaseUrl();
+
     if (this.#renderer instanceof URL) {
-      await browserWindow.loadURL(this.#renderer.href);
+      const url = new URL(this.#renderer.href);
+      if (backendUrl) {
+        url.searchParams.set("backendBaseUrl", backendUrl);
+      }
+      await browserWindow.loadURL(url.href);
     } else {
-      await browserWindow.loadFile(this.#renderer.path);
+      if (backendUrl) {
+        await browserWindow.loadFile(this.#renderer.path, {
+          query: { backendBaseUrl: backendUrl },
+        });
+      } else {
+        await browserWindow.loadFile(this.#renderer.path);
+      }
     }
 
     // Notify renderer about fullscreen changes (macOS hides traffic lights in fullscreen)

@@ -1,19 +1,4 @@
-import "reflect-metadata";
-import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
+import { bootstrap } from "./bootstrap";
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableCors({
-    origin: [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-      "http://localhost:4173",
-      "http://127.0.0.1:4173",
-    ],
-    credentials: true,
-  });
-
-  await app.listen(3000);
-}
-bootstrap();
+// 作为独立后端入口（例如常规 BS 架构运行）
+void bootstrap({ preferredPort: 3000 });

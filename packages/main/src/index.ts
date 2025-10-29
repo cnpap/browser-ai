@@ -2,6 +2,7 @@ import type { AppInitConfig } from "./AppInitConfig.js";
 import { createModuleRunner } from "./ModuleRunner.js";
 import { terminateAppOnLastWindowClose } from "./modules/ApplicationTerminatorOnLastWindowClose.js";
 import { autoUpdater } from "./modules/AutoUpdater.js";
+import { createBackendServerModule } from "./modules/BackendServer.js";
 import { allowInternalOrigins } from "./modules/BlockNotAllowdOrigins.js";
 import { allowExternalUrls } from "./modules/ExternalUrls.js";
 import { hardwareAccelerationMode } from "./modules/HardwareAccelerationModule.js";
@@ -11,6 +12,8 @@ import { createWindowManagerModule } from "./modules/WindowManager.js";
 
 export async function initApp(initConfig: AppInitConfig) {
   const moduleRunner = createModuleRunner()
+    // 先启动后端服务，确保窗口加载前已有可用 API
+    .init(createBackendServerModule({ preferredPort: 3000 }))
     .init(
       createWindowManagerModule({
         initConfig,
