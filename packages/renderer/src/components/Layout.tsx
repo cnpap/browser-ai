@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import type { PropsWithChildren } from "react";
+import { useEffect, useState } from "react";
 import "./Layout.css";
 
 export default function Layout({ children }: PropsWithChildren) {
@@ -31,18 +31,21 @@ export default function Layout({ children }: PropsWithChildren) {
         {!isMac && (
           <div className="window-controls">
             <button
+              type="button"
               className="win-btn"
               onClick={() => send?.("window-controls", "minimize")}
             >
               −
             </button>
             <button
+              type="button"
               className="win-btn"
               onClick={() => send?.("window-controls", "toggle-maximize")}
             >
               ▢
             </button>
             <button
+              type="button"
               className="win-btn close"
               onClick={() => send?.("window-controls", "close")}
             >

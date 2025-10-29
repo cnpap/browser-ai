@@ -7,18 +7,21 @@ function App() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    app.getHello().then(res => {
-      console.log('vtzac demo:', res._data);
-    }).catch(err => {
-      console.error('vtzac demo error:', err);
-    });
+    app
+      .getHello()
+      .then((res) => {
+        console.log("vtzac demo:", res._data);
+      })
+      .catch((err) => {
+        console.error("vtzac demo error:", err);
+      });
   }, []);
 
   return (
     <Layout>
       <h1>Helloword</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        <button type="button" onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
       </div>

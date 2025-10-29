@@ -1,6 +1,6 @@
-import {sha256sum} from './nodeCrypto.js';
-import {versions} from './versions.js';
-import {ipcRenderer} from 'electron';
+import { ipcRenderer } from "electron";
+import { sha256sum } from "./nodeCrypto.js";
+import { versions } from "./versions.js";
 
 // Expose platform to renderer for platform-specific UI tweaks
 const platform = process.platform;
@@ -10,9 +10,12 @@ function send(channel: string, message: string) {
 }
 
 function onFullScreenChanged(callback: (isFullScreen: boolean) => void) {
-  ipcRenderer.on('window:fullscreen-changed', (_event, isFullScreen: boolean) => {
-    callback(isFullScreen);
-  });
+  ipcRenderer.on(
+    "window:fullscreen-changed",
+    (_event, isFullScreen: boolean) => {
+      callback(isFullScreen);
+    },
+  );
 }
 
-export {sha256sum, versions, send, platform, onFullScreenChanged};
+export { sha256sum, versions, send, platform, onFullScreenChanged };

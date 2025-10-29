@@ -1,23 +1,24 @@
-import {AppModule} from '../AppModule.js';
-import electronUpdater, {type AppUpdater, type Logger} from 'electron-updater';
+import electronUpdater, {
+  type AppUpdater,
+  type Logger,
+} from "electron-updater";
+import type { AppModule } from "../AppModule.js";
 
-type DownloadNotification = Parameters<AppUpdater['checkForUpdatesAndNotify']>[0];
+type DownloadNotification = Parameters<
+  AppUpdater["checkForUpdatesAndNotify"]
+>[0];
 
 export class AutoUpdater implements AppModule {
-
   readonly #logger: Logger | null;
   readonly #notification: DownloadNotification;
 
-  constructor(
-    {
-      logger = null,
-      downloadNotification = undefined,
-    }:
-      {
-        logger?: Logger | null | undefined,
-        downloadNotification?: DownloadNotification
-      } = {},
-  ) {
+  constructor({
+    logger = null,
+    downloadNotification = undefined,
+  }: {
+    logger?: Logger | null | undefined;
+    downloadNotification?: DownloadNotification;
+  } = {}) {
     this.#logger = logger;
     this.#notification = downloadNotification;
   }
@@ -29,14 +30,16 @@ export class AutoUpdater implements AppModule {
   getAutoUpdater(): AppUpdater {
     // Using destructuring to access autoUpdater due to the CommonJS module of 'electron-updater'.
     // It is a workaround for ESM compatibility issues, see https://github.com/electron-userland/electron-builder/issues/7976.
-    const {autoUpdater} = electronUpdater;
+    const { autoUpdater } = electronUpdater;
     return autoUpdater;
   }
 
   async runAutoUpdater() {
     // Skip auto-update during CI or Playwright tests to avoid network/file provider issues
     const isCI = !!process.env.CI;
-    const isPlaywright = process.env.PLAYWRIGHT_TEST === 'true' || process.env.PLAYWRIGHT_TEST === '1';
+    const isPlaywright =
+      process.env.PLAYWRIGHT_TEST === "true" ||
+      process.env.PLAYWRIGHT_TEST === "1";
     if (isCI || isPlaywright) {
       return null;
     }
@@ -55,8 +58,8 @@ export class AutoUpdater implements AppModule {
       if (error instanceof Error) {
         // Gracefully ignore common non-fatal cases when updates are not available/provided
         if (
-          error.message.includes('No published versions') ||
-          error.message.includes('No files provided')
+          error.message.includes("No published versions") ||
+          error.message.includes("No files provided")
         ) {
           return null;
         }
@@ -67,7 +70,8 @@ export class AutoUpdater implements AppModule {
   }
 }
 
-
-export function autoUpdater(...args: ConstructorParameters<typeof AutoUpdater>) {
+export function autoUpdater(
+  ...args: ConstructorParameters<typeof AutoUpdater>
+) {
   return new AutoUpdater(...args);
 }

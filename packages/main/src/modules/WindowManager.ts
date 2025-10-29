@@ -1,32 +1,35 @@
-import type {AppModule} from '../AppModule.js';
-import {ModuleContext} from '../ModuleContext.js';
-import {BrowserWindow} from 'electron';
-import type {AppInitConfig} from '../AppInitConfig.js';
+import { BrowserWindow } from "electron";
+import type { AppInitConfig } from "../AppInitConfig.js";
+import type { AppModule } from "../AppModule.js";
+import type { ModuleContext } from "../ModuleContext.js";
 
 class WindowManager implements AppModule {
-  readonly #preload: {path: string};
-  readonly #renderer: {path: string} | URL;
+  readonly #preload: { path: string };
+  readonly #renderer: { path: string } | URL;
   readonly #openDevTools;
 
-  constructor({initConfig, openDevTools = false}: {initConfig: AppInitConfig, openDevTools?: boolean}) {
+  constructor({
+    initConfig,
+    openDevTools = false,
+  }: { initConfig: AppInitConfig; openDevTools?: boolean }) {
     this.#preload = initConfig.preload;
     this.#renderer = initConfig.renderer;
     this.#openDevTools = openDevTools;
   }
 
-  async enable({app}: ModuleContext): Promise<void> {
+  async enable({ app }: ModuleContext): Promise<void> {
     await app.whenReady();
     await this.restoreOrCreateWindow(true);
-    app.on('second-instance', () => this.restoreOrCreateWindow(true));
-    app.on('activate', () => this.restoreOrCreateWindow(true));
+    app.on("second-instance", () => this.restoreOrCreateWindow(true));
+    app.on("activate", () => this.restoreOrCreateWindow(true));
   }
 
   async createWindow(): Promise<BrowserWindow> {
-    const isMac = process.platform === 'darwin';
+    const isMac = process.platform === "darwin";
     const browserWindow = new BrowserWindow({
       show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
-      frame: isMac ? true : false,
-      titleBarStyle: isMac ? 'hiddenInset' : undefined,
+      frame: !!isMac,
+      titleBarStyle: isMac ? "hiddenInset" : undefined,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -43,18 +46,18 @@ class WindowManager implements AppModule {
     }
 
     // Notify renderer about fullscreen changes (macOS hides traffic lights in fullscreen)
-    browserWindow.on('enter-full-screen', () => {
-      browserWindow.webContents.send('window:fullscreen-changed', true);
+    browserWindow.on("enter-full-screen", () => {
+      browserWindow.webContents.send("window:fullscreen-changed", true);
     });
-    browserWindow.on('leave-full-screen', () => {
-      browserWindow.webContents.send('window:fullscreen-changed', false);
+    browserWindow.on("leave-full-screen", () => {
+      browserWindow.webContents.send("window:fullscreen-changed", false);
     });
 
     return browserWindow;
   }
 
   async restoreOrCreateWindow(show = false) {
-    let window = BrowserWindow.getAllWindows().find(w => !w.isDestroyed());
+    let window = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed());
 
     if (window === undefined) {
       window = await this.createWindow();
@@ -78,9 +81,10 @@ class WindowManager implements AppModule {
 
     return window;
   }
-
 }
 
-export function createWindowManagerModule(...args: ConstructorParameters<typeof WindowManager>) {
+export function createWindowManagerModule(
+  ...args: ConstructorParameters<typeof WindowManager>
+) {
   return new WindowManager(...args);
 }

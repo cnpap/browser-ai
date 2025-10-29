@@ -48,8 +48,13 @@
   color: inherit;
   cursor: pointer;
 }
-.win-btn:hover { border-color: #646cff; }
-.win-btn.close:hover { border-color: #e74c3c; color: #e74c3c; }
+.win-btn:hover {
+  border-color: #646cff;
+}
+.win-btn.close:hover {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
 
 /* macOS: hide right-side controls and offset title */
 .titlebar.mac {

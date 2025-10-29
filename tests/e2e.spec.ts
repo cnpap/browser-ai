@@ -1,12 +1,14 @@
-import type { ElectronApplication, JSHandle } from "playwright";
-import { _electron as electron } from "playwright";
-import { expect, test as base, Page } from "@playwright/test";
-import type { Page as PlaywrightPage } from "playwright";
-
+import { createHash } from "node:crypto";
+import { platform } from "node:process";
+import { test as base, expect, type Page } from "@playwright/test";
 import type { BrowserWindow } from "electron";
 import { globSync } from "glob";
-import { platform } from "node:process";
-import { createHash } from "node:crypto";
+import type {
+  ElectronApplication,
+  JSHandle,
+  Page as PlaywrightPage,
+} from "playwright";
+import { _electron as electron } from "playwright";
 
 process.env.PLAYWRIGHT_TEST = "true";
 
@@ -24,14 +26,18 @@ type PreloadGlobals = {
 // Declare the types of your fixtures.
 type TestFixtures = {
   page: PlaywrightPage;
-  electronApp: ElectronApplication;
   electronVersions: NodeJS.ProcessVersions;
+};
+
+type WorkerFixtures = {
+  electronApp: ElectronApplication;
 };
 
 declare const g: <T extends keyof PreloadGlobals>(key: T) => PreloadGlobals[T];
 
-const test = base.extend<TestFixtures>({
+const test = base.extend<TestFixtures, WorkerFixtures>({
   electronApp: [
+    // biome-ignore lint/correctness/noEmptyPattern: Playwright worker fixture requires empty destructuring
     async ({}, use) => {
       /**
        * Executable path depends on root package name!
@@ -62,7 +68,7 @@ const test = base.extend<TestFixtures>({
       // This code runs after all the tests in the worker process.
       await electronApp.close();
     },
-    { scope: "worker", auto: true } as any,
+    { scope: "worker", auto: true },
   ],
 
   page: async ({ electronApp }, use) => {
@@ -91,11 +97,14 @@ const test = base.extend<TestFixtures>({
   },
 });
 
-test("Main window state", async ({ electronApp, page }: TestFixtures) => {
+test("Main window state", async ({
+  electronApp,
+  page,
+}: TestFixtures & WorkerFixtures) => {
   const window: JSHandle<BrowserWindow> = await electronApp.browserWindow(page);
   const windowState = await window.evaluate(
     (
-      mainWindow
+      mainWindow,
     ): Promise<{
       isVisible: boolean;
       isDevToolsOpened: boolean;
@@ -118,15 +127,15 @@ test("Main window state", async ({ electronApp, page }: TestFixtures) => {
           mainWindow.once("ready-to-show", () => resolve(getState()));
         }
       });
-    }
+    },
   );
 
   expect(windowState.isCrashed, "The app has crashed").toEqual(false);
   expect(windowState.isVisible, "The main window was not visible").toEqual(
-    true
+    true,
   );
   expect(windowState.isDevToolsOpened, "The DevTools panel was open").toEqual(
-    false
+    false,
   );
 });
 
@@ -177,7 +186,7 @@ test.describe("Preload context should be exposed", async () => {
       const expectedValue = btoa(testString);
       const value = await page.evaluate(
         async ({ k, str }) => await g(k)("test", str),
-        { k: KEY_SEND, str: testString }
+        { k: KEY_SEND, str: testString },
       );
       expect(value).toEqual(expectedValue);
     });

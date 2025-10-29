@@ -1,38 +1,39 @@
-import {AppModule} from '../AppModule.js';
-import {ModuleContext} from '../ModuleContext.js';
-import {BrowserWindow, ipcMain} from 'electron';
+import { BrowserWindow, ipcMain } from "electron";
+import type { AppModule } from "../AppModule.js";
+import type { ModuleContext } from "../ModuleContext.js";
 
 /**
  * IPC handlers to control the current BrowserWindow from the renderer.
  * Channel: 'window-controls' with payloads: 'minimize' | 'maximize' | 'unmaximize' | 'close' | 'toggle-maximize'
  */
 export class WindowControlsIpc implements AppModule {
-  enable({app}: ModuleContext): Promise<void> | void {
+  enable(context: ModuleContext): Promise<void> | void {
+    void context;
     // Ensure handlers are registered once
-    ipcMain.handle('window-controls', (event, action: string) => {
+    ipcMain.handle("window-controls", (event, action: string) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       if (!win) {
         return false;
       }
 
       switch (action) {
-        case 'minimize':
+        case "minimize":
           win.minimize();
           return true;
-        case 'maximize':
+        case "maximize":
           win.maximize();
           return true;
-        case 'unmaximize':
+        case "unmaximize":
           win.unmaximize();
           return true;
-        case 'toggle-maximize':
+        case "toggle-maximize":
           if (win.isMaximized()) {
             win.unmaximize();
           } else {
             win.maximize();
           }
           return true;
-        case 'close':
+        case "close":
           win.close();
           return true;
         default:
@@ -42,6 +43,8 @@ export class WindowControlsIpc implements AppModule {
   }
 }
 
-export function windowControlsIpc(...args: ConstructorParameters<typeof WindowControlsIpc>) {
+export function windowControlsIpc(
+  ...args: ConstructorParameters<typeof WindowControlsIpc>
+) {
   return new WindowControlsIpc(...args);
 }
