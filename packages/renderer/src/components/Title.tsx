@@ -8,7 +8,7 @@ export default function Title() {
   return (
     <div
       className={`select-none text-small font-semibold ${
-        isMac && isFullScreen ? "" : ""
+        isMac && (isFullScreen ? "" : "pl-16")
       }`}
     >
       Browser AI
