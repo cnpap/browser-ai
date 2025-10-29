@@ -21,7 +21,7 @@
     "compile": "npm run build && electron-builder build --config electron-builder.mjs",
     "test": "npx playwright test ./tests/e2e.spec.ts",
     "start": "node packages/dev-mode.js",
-    "dev:workspaces": "concurrently -n backend,renderer -c yellow,cyan \"npm start --workspace backend\" \"wait-on tcp:3000 && npm run dev --workspace @app/renderer\"",
+    "dev": "concurrently -n backend,renderer -c yellow,cyan \"npm start --workspace backend\" \"wait-on tcp:3000 && npm run dev --workspace @app/renderer\"",
     "typecheck": "npm run typecheck -ws --if-present",
     "create-renderer": "cd packages && node ./integrate-renderer/create-renderer.js",
     "integrate-renderer": "npm start --workspace @app/integrate-renderer",
