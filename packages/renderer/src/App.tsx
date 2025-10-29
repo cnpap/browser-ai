@@ -58,10 +58,10 @@ function App() {
           <Divider />
           <CardBody className="space-y-4 p-4">
             <div className="flex items-center gap-3">
-              <Button color="primary" onClick={() => setCount((c) => c + 1)}>
+              <Button color="primary" onPress={() => setCount((c) => c + 1)}>
                 Count is {count}
               </Button>
-              <Button variant="flat" onClick={() => setCount(0)}>
+              <Button variant="flat" onPress={() => setCount(0)}>
                 Reset
               </Button>
             </div>
