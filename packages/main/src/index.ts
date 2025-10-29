@@ -4,6 +4,7 @@ import { terminateAppOnLastWindowClose } from "./modules/ApplicationTerminatorOn
 import { autoUpdater } from "./modules/AutoUpdater.js";
 import { createBackendServerModule } from "./modules/BackendServer.js";
 import { allowInternalOrigins } from "./modules/BlockNotAllowdOrigins.js";
+import { devToolsShortcuts } from "./modules/DevToolsShortcuts.js";
 import { allowExternalUrls } from "./modules/ExternalUrls.js";
 import { hardwareAccelerationMode } from "./modules/HardwareAccelerationModule.js";
 import { disallowMultipleAppInstance } from "./modules/SingleInstanceApp.js";
@@ -24,6 +25,7 @@ export async function initApp(initConfig: AppInitConfig) {
     .init(terminateAppOnLastWindowClose())
     .init(hardwareAccelerationMode({ enable: false }))
     .init(windowControlsIpc())
+    .init(devToolsShortcuts())
     .init(autoUpdater())
 
     // Install DevTools extension if needed
