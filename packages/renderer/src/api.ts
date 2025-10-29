@@ -1,4 +1,4 @@
-import { AppController } from "nestjs/src/app.controller";
+import { AppController } from "backend/src/app.controller";
 import { _http } from "vtzac";
 
 const controller = _http({
