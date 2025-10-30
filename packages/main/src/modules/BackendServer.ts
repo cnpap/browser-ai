@@ -26,11 +26,20 @@ class BackendServer implements AppModule {
   }
 
   async enable(_context: ModuleContext): Promise<void> {
-    // 启动后端服务
-    const result = await startBackend({ preferredPort: this.#preferredPort });
-    backendBaseUrl = result.baseUrl;
-    // 输出后端启动信息，便于定位端口/地址问题
-    console.log("[backend] listening at:", backendBaseUrl);
+    // 在开发模式下，后端服务由 dev-mode.js 或 concurrently 启动
+    // 这里只需要设置后端地址，不启动服务
+    if (process.env.NODE_ENV === "development") {
+      backendBaseUrl = `http://localhost:${this.#preferredPort}`;
+      console.log(
+        "[backend] development mode - expecting backend at:",
+        backendBaseUrl,
+      );
+    } else {
+      // 生产模式下启动后端服务
+      const result = await startBackend({ preferredPort: this.#preferredPort });
+      backendBaseUrl = result.baseUrl;
+      console.log("[backend] listening at:", backendBaseUrl);
+    }
 
     // 供渲染进程查询后端地址（备用）
     ipcMain.handle("backend:get-base-url", () => backendBaseUrl);
