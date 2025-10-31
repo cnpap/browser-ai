@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.53.4",
     "@heroui/react": "^2.8.5",
     "@tailwindcss/vite": "^4.1.16",
     "backend": "0.0.1",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-router-dom": "^7.9.5",
     "tailwindcss": "^4.1.16"
   },
   "devDependencies": {

@@ -1,3 +1,4 @@
+import { useClerk, useUser } from "@clerk/clerk-react";
 import {
   Avatar,
   Dropdown,
@@ -8,17 +9,22 @@ import {
 import type { Key } from "react";
 
 /**
- * Simple user avatar component for the top bar.
- * If no image is available, shows initials.
+ * User avatar component integrated with Clerk authentication.
+ * Shows user's real avatar and provides logout functionality.
  */
 export default function UserAvatar() {
-  const userName = "User";
-  const userEmail = "user@example.com";
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
-  const onAction = (key: Key) => {
+  // 获取用户信息，提供 fallback
+  const userName = user?.fullName || user?.firstName || "用户";
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+  const userAvatar = user?.imageUrl;
+
+  const onAction = async (key: Key) => {
     switch (String(key)) {
       case "profile": {
-        // 这里可接入路由或打开“个人信息”面板，目前先示例提示
+        // 这里可接入路由或打开"个人信息"面板，目前先示例提示
         try {
           // 在 Electron/网页环境均可用的最简提示
           window.alert?.("打开个人信息（示例）");
@@ -31,11 +37,10 @@ export default function UserAvatar() {
         try {
           const ok = window.confirm?.("确定要退出登录吗？");
           if (ok) {
-            // TODO: 在此接入实际的退出逻辑（清理本地状态、调用后端、通知主进程等）
-            console.log("logout action triggered");
+            await signOut();
           }
-        } catch {
-          console.log("logout action triggered");
+        } catch (error) {
+          console.error("退出登录失败:", error);
         }
         break;
       }
@@ -57,10 +62,11 @@ export default function UserAvatar() {
             <Avatar
               name={userName}
               size="sm"
-              src="https://i.pravatar.cc/150?u=a04258114e29026708c"
+              src={userAvatar}
               radius="sm"
               color="primary"
               className="bg-content2 text-foreground/90"
+              showFallback
             />
           </button>
         </DropdownTrigger>

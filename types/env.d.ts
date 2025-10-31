@@ -18,6 +18,9 @@ interface ImportMetaEnv {
 
   /** Current app version */
   readonly VITE_APP_VERSION: string;
+
+  /** Clerk 前端发布密钥（用于初始化 ClerkProvider） */
+  readonly VITE_CLERK_PUBLISHABLE_KEY?: string;
 }
 
 interface ImportMeta {
