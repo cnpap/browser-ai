@@ -12,7 +12,10 @@ class WindowManager implements AppModule {
   constructor({
     initConfig,
     openDevTools = false,
-  }: { initConfig: AppInitConfig; openDevTools?: boolean }) {
+  }: {
+    initConfig: AppInitConfig;
+    openDevTools?: boolean;
+  }) {
     this.#preload = initConfig.preload;
     this.#renderer = initConfig.renderer;
     this.#openDevTools = openDevTools;

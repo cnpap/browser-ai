@@ -5,12 +5,21 @@ import Title from "./Title";
 import UserAvatar from "./UserAvatar";
 import WindowControls from "./WindowControls";
 
-export default function Layout({ children }: PropsWithChildren) {
+interface LayoutProps extends PropsWithChildren {
+  showSidebar?: boolean;
+  showUserAvatar?: boolean;
+}
+
+export default function Layout({
+  children,
+  showSidebar = true,
+  showUserAvatar = true,
+}: LayoutProps) {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       {/* Top bar */}
       <div
-        className={`flex h-10 items-center justify-between border-b border-divider bg-content1 px-3`}
+        className={`flex h-10 items-center justify-between border-b border-divider bg-content1 px-4`}
         style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
       >
         <Title />
@@ -20,7 +29,7 @@ export default function Layout({ children }: PropsWithChildren) {
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
           {/* User avatar to the left of ThemeToggle */}
-          <UserAvatar />
+          {showUserAvatar && <UserAvatar />}
           <ThemeToggle />
           <WindowControls />
         </div>
@@ -28,8 +37,8 @@ export default function Layout({ children }: PropsWithChildren) {
 
       {/* Main area with sidebar */}
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-auto p-4">{children}</main>
+        {showSidebar && <Sidebar />}
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   );

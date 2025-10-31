@@ -55,6 +55,13 @@ export async function initApp(initConfig: AppInitConfig) {
                 "https://preactjs.com",
                 "https://www.typescriptlang.org",
                 "https://vuejs.org",
+                // Clerk 认证相关域名
+                "https://clerk.accounts.dev",
+                "https://accounts.dev",
+                "https://clerk.dev",
+                "https://api.clerk.dev",
+                "https://api.clerk.com",
+                "https://clerk.com",
               ]
             : [],
         ),
