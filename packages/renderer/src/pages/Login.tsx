@@ -1,58 +1,52 @@
-import { useAuth } from "@clerk/clerk-react";
 import { Button, Spinner } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { app } from "../api";
 import Layout from "../components/Layout";
+import { authEvents, disconnect, socket } from "../socket";
 
 export default function Login() {
-  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
-  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [_isAuthenticated, setIsAuthenticated] = useState(false); // Simple state for demo; replace with actual auth check
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    socket.connect();
+    authEvents.loginSuccess((data: { jwt: string; session: unknown }) => {
+      console.log("Login success received:", data);
+      // Handle JWT: store in localStorage or context for session management
+      localStorage.setItem("authToken", data.jwt);
+      // 保存会话信息供首页读取（由后端回调 Hook 直接提供）
+      try {
+        localStorage.setItem("authSession", JSON.stringify(data.session));
+      } catch {}
+      setIsAuthenticated(true);
+      navigate("/");
+    });
+
+    return () => {
+      disconnect();
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    // Check if already authenticated (e.g., from localStorage)
+    if (localStorage.getItem("authToken")) {
+      setIsAuthenticated(true);
       navigate("/");
     }
-  }, [isLoaded, isSignedIn, navigate]);
+  }, [navigate]);
 
-  useEffect(() => {
-    if (!isCheckingAuth) return;
-    const interval = setInterval(() => {
-      if (isSignedIn) {
-        setIsCheckingAuth(false);
-        navigate("/");
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isCheckingAuth, isSignedIn, navigate]);
-
-  const handleLogin = async () => {
-    setIsCheckingAuth(true);
-    const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-    const keyParts = publishableKey.split("_");
-    const encodedDomain = keyParts[keyParts.length - 1];
-    const clerkDomain = atob(encodedDomain)
-      .replace(/\$$/, "")
-      .replace(/\.clerk\.accounts\.dev$/, ".accounts.dev");
-
-    const signInUrl = `https://${clerkDomain}/sign-in`;
-    app.openUrl({ url: signInUrl });
+  const handleGitHubLogin = async () => {
+    setIsLoggingIn(true);
+    // 将会通过 electron 直接打开这个链接。
+    // better-auth 使用 basePath "/api/auth"，这里提供更直观的入口：
+    // "/api/auth/sign-in/<provider>"
+    const githubLoginUrl = "http://localhost:3999/api/auth/sign-in/github";
+    app.openUrl({ url: githubLoginUrl });
+    // Note: Callback will trigger WebSocket event
   };
-
-  if (!isLoaded) {
-    return (
-      <Layout showSidebar={false} showUserAvatar={false}>
-        <div className="flex h-full w-full items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner size="lg" color="primary" />
-            <p className="text-default-500">正在初始化...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout showSidebar={false} showUserAvatar={false}>
@@ -66,21 +60,21 @@ export default function Login() {
             />
           </div>
 
-          {/* 固定的按钮区域 */}
+          {/* 按钮区域 */}
           <div className="space-y-4">
             <div className="flex items-center">
               <Button
-                color={isCheckingAuth ? "default" : "primary"}
-                variant={isCheckingAuth ? "flat" : "shadow"}
+                color={isLoggingIn ? "default" : "primary"}
+                variant={isLoggingIn ? "flat" : "shadow"}
                 className="w-full text-base font-medium"
                 onPress={
-                  isCheckingAuth ? () => setIsCheckingAuth(false) : handleLogin
+                  isLoggingIn ? () => setIsLoggingIn(false) : handleGitHubLogin
                 }
                 startContent={
-                  isCheckingAuth && <Spinner size="sm" color="current" />
+                  isLoggingIn && <Spinner size="sm" color="current" />
                 }
               >
-                {isCheckingAuth ? "取消" : "登录"}
+                {isLoggingIn ? "取消" : "使用 GitHub 登录"}
               </Button>
             </div>
           </div>

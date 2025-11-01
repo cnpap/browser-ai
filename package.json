@@ -45,6 +45,7 @@
     "wait-on": "^9.0.1"
   },
   "dependencies": {
-    "@app/main": "*"
+    "@app/main": "*",
+    "@nestjs/platform-socket.io": "^11.1.8"
   }
 }

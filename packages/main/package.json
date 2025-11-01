@@ -15,6 +15,7 @@
     "@app/preload": "*",
     "@app/renderer": "*",
     "backend": "0.0.1",
+    "backend-api": "0.0.1",
     "electron-updater": "6.6.2"
   },
   "devDependencies": {

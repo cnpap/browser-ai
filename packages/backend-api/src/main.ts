@@ -1,18 +1,16 @@
 import { Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 import type { OpenAPIObject } from "@nestjs/swagger";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
-import type { ConfigType } from "./config/configuration";
+import { getEnv } from "./config/configuration";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
     logger: ["log", "error", "warn", "debug", "verbose"],
   });
-
-  // 获取配置服务
-  const configService = app.get(ConfigService);
 
   // 启用 CORS 以支持前端访问
   app.enableCors({
@@ -25,6 +23,8 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
+  app.useWebSocketAdapter(new IoAdapter(app));
+
   // 配置 Swagger
   const swaggerConfig = new DocumentBuilder()
     .setTitle("Browser AI API")
@@ -36,9 +36,8 @@ async function bootstrap(): Promise<void> {
     SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup("api-docs", app, documentFactory);
 
-  // 从配置服务获取端口号
-  const appConfig = configService.get<ConfigType>("app");
-  const port = appConfig?.PORT ?? 3999;
+  // 使用新的环境变量获取函数获取端口号
+  const port = getEnv("PORT");
   await app.listen(port);
   Logger.log(
     `🚀 Application is running on: http://localhost:${port}`,

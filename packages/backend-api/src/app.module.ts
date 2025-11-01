@@ -1,19 +1,25 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { AuthModule as NestAuthModule } from "@thallesp/nestjs-better-auth"; // Renamed to avoid conflict
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { auth } from "./auth/auth"; // Your better-auth config
+import { AuthController as BetterAuthController } from "./auth/auth.controller";
+import { AuthGateway } from "./auth/auth.gateway";
+import { LoginHook } from "./auth/auth.hooks";
 import configuration from "./config/configuration";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
-      isGlobal: true, // 使配置在整个应用中全局可用
-      cache: true, // 缓存配置以提高性能
-      expandVariables: true, // 支持环境变量展开
+      isGlobal: true,
+      cache: true,
+      expandVariables: true,
     }),
+    NestAuthModule.forRoot({ auth }), // Integrate better-auth
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, BetterAuthController],
+  providers: [AppService, AuthGateway, LoginHook],
 })
 export class AppModule {}

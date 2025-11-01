@@ -20,6 +20,7 @@ export default function Home() {
   const { isSignedIn, signOut, isLoaded } = useAuth();
   const { user } = useUser();
   const navigate = useNavigate();
+  const authed = isSignedIn || Boolean(localStorage.getItem("authToken"));
 
   useEffect(() => {
     app
@@ -35,21 +36,26 @@ export default function Home() {
 
   // 检查登录状态，如果未登录则跳转到登录页面
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !authed) {
       navigate("/login");
     }
-  }, [isLoaded, isSignedIn, navigate]);
+  }, [isLoaded, authed, navigate]);
 
   const handleLogin = () => {
     navigate("/login");
   };
 
   const handleLogout = () => {
-    signOut();
+    try {
+      localStorage.removeItem("authToken");
+    } catch {}
+    if (isSignedIn) {
+      signOut();
+    }
   };
 
-  // 如果认证状态未加载完成或用户未登录，显示加载状态
-  if (!isLoaded || !isSignedIn) {
+  // 如果未认证且 Clerk 状态未加载完成，显示加载状态
+  if (!authed && !isLoaded) {
     return (
       <Layout>
         <div className="flex h-screen items-center justify-center">
@@ -94,7 +100,7 @@ export default function Home() {
             <div className="space-y-2">
               <p className="text-small text-default-500">认证状态:</p>
               <div className="flex items-center gap-3">
-                {isSignedIn ? (
+                {authed ? (
                   <>
                     <Chip color="success" variant="flat">
                       已登录:{" "}
