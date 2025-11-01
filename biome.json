@@ -42,7 +42,10 @@
   },
   "overrides": [
     {
-      "includes": ["packages/backend/**/*.{ts,js}"],
+      "includes": [
+        "packages/backend/**/*.{ts,js}",
+        "packages/backend-api/**/*.{ts,js}"
+      ],
       "linter": {
         "rules": {
           "style": {
